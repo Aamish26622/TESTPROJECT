@@ -35,15 +35,16 @@ class PostEmailSingle implements ShouldQueue
     public function handle()
     {
         $subscribers = Subscription::with('user.postEmail')
-            ->whereDoesntHave('user.postEmail')
             ->where('website_id', $this->post->website_id)
             ->get();
         foreach ($subscribers as $subscriber) {
-            Mail::send('emails.new_post', array('post' => $this->post), function ($message) use ($subscriber) {
-                $message->to($subscriber->user->email)
-                    ->subject('New Post');
-            });
-            $this->post->postEmailUsers()->save($subscriber->user);
+            if (!count($this->post->postEmailUsers->where('id', $subscriber->user->id))) {
+                Mail::send('emails.new_post', array('post' => $this->post), function ($message) use ($subscriber) {
+                    $message->to($subscriber->user->email)
+                        ->subject('New Post');
+                });
+                $this->post->postEmailUsers()->save($subscriber->user);
+            }
         }
     }
 }

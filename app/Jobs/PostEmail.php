@@ -33,10 +33,10 @@ class PostEmail implements ShouldQueue
     public function handle()
     {
         try {
-            $posts = Post::with(['website.subscribers.user.postEmail', 'postEmailUsers'])->get();
+            $posts = Post::with(['website.subscribers.user', 'postEmailUsers'])->get();
             foreach ($posts as $post) {
                 foreach ($post->website->subscribers as $subscriber) {
-                    if (!count($subscriber->user->postEmail)) {
+                    if (!count($post->postEmailUsers->where('id', $subscriber->user->id))) {
                         Mail::send('emails.new_post', array('post' => $post), function ($message) use ($subscriber) {
                             $message->to($subscriber->user->email)
                                 ->subject('New Post');
