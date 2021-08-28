@@ -25,7 +25,9 @@ class LoginController extends Controller
         if (!Auth::attempt($request->only('email', 'password'))) {
             return collect([
                 'status' => false,
-                'errors' => 'Invalid login details'
+                'errors' => collect([
+                    'message' => 'Invalid login details'
+                ])
             ]);
         }
         $user = User::where('email', $request['email'])->firstOrFail();

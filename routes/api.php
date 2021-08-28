@@ -21,4 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/subscribe', 'Api\SubscriptionsController@subscribe');
+    Route::post('/post', 'Api\PostsController@store');
 });

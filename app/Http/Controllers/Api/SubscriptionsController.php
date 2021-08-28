@@ -24,9 +24,9 @@ class SubscriptionsController extends Controller
         if ($request->email != Auth::user()->email) {
             return collect([
                 'status' => false,
-                'errors' => [
+                'errors' => collect([
                     'email' => 'This email does not belong to you.'
-                ]
+                ])
             ]);
         }
 
