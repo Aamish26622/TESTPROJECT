@@ -15,4 +15,14 @@ class Post extends Model
         'user_id',
         'website_id'
     ];
+
+    public function website()
+    {
+        return $this->belongsTo(Website::class);
+    }
+
+    public function postEmailUsers()
+    {
+        return $this->belongsToMany(User::class, 'post_email_users')->withTimestamps();
+    }
 }

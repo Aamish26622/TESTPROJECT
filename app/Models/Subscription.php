@@ -13,4 +13,9 @@ class Subscription extends Model
         'user_id',
         'website_id'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
