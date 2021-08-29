@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Post;
 use App\Models\Subscription;
+use App\Models\Website;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,17 +35,16 @@ class PostEmailSingle implements ShouldQueue
      */
     public function handle()
     {
-        $subscribers = Subscription::with('user.postEmail')
+        Subscription::with('user')
             ->where('website_id', $this->post->website_id)
-            ->get();
-        foreach ($subscribers as $subscriber) {
-            if (!count($this->post->postEmailUsers->where('id', $subscriber->user->id))) {
-                Mail::send('emails.new_post', array('post' => $this->post), function ($message) use ($subscriber) {
-                    $message->to($subscriber->user->email)
+            ->chunk(100, function ($subscriptions) {
+            foreach ($subscriptions as $subscription) {
+                Mail::send('emails.new_post', array('post' => $this->post), function ($message) use ($subscription) {
+                    $message->to($subscription->user->email)
                         ->subject('New Post');
                 });
-                $this->post->postEmailUsers()->save($subscriber->user);
+                $this->post->postEmailUsers()->save($subscription->user);
             }
-        }
+        });
     }
 }
