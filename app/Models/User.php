@@ -46,4 +46,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Post::class, 'post_email_users');
     }
+
+    public function subscriptions()
+    {
+        return $this->belongsToMany(Website::class)->withTimestamps();
+    }
 }

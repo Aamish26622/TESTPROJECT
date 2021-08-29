@@ -15,6 +15,6 @@ class Website extends Model
 
     public function subscribers()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->belongsToMany(User::class);
     }
 }
