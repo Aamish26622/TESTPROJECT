@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Post;
+use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,17 +34,23 @@ class PostEmail implements ShouldQueue
      */
     public function handle()
     {
-        $posts = Post::with(['website.subscribers.user', 'postEmailUsers'])->get();
-        foreach ($posts as $post) {
-            foreach ($post->website->subscribers as $subscriber) {
-                if (!count($post->postEmailUsers->where('id', $subscriber->user->id))) {
-                    Mail::send('emails.new_post', array('post' => $post), function ($message) use ($subscriber) {
-                        $message->to($subscriber->user->email)
-                            ->subject('New Post');
-                    });
-                    $post->postEmailUsers()->save($subscriber->user);
-                }
+        Post::with(['website', 'postEmailUsers'])
+            ->chunk(100, function ($posts) {
+            foreach ($posts as $post) {
+                Subscription::with('user')
+                    ->where('website_id', $post->website_id)
+                    ->chunk(100, function ($subscriptions) use ($post) {
+                    foreach ($subscriptions as $subscription) {
+                        if (!count($post->postEmailUsers->where('id', $subscription->user->id))) {
+                            Mail::send('emails.new_post', array('post' => $post), function ($message) use ($subscription) {
+                                $message->to($subscription->user->email)
+                                    ->subject('New Post');
+                            });
+                            $post->postEmailUsers()->save($subscription->user);
+                        }
+                    }
+                });
             }
-        }
+        });
     }
 }
